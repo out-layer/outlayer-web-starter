@@ -10,9 +10,9 @@
  */
 
 import 'server-only';
-import { createSession } from './session.js';
-import { findByAddress, create, type Chain, type UserWallet } from './store.js';
-import { registerWallet } from './outlayer.js';
+import { createSession } from './session';
+import { findByAddress, create, type Chain, type UserWallet } from './store';
+import { registerWallet } from './outlayer';
 
 export async function signInWithAddress(chain: Chain, address: string): Promise<UserWallet> {
   const existing = findByAddress(chain, address);

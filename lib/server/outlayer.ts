@@ -12,7 +12,7 @@
 
 import 'server-only';
 import { OutlayerClient, type Network } from '@outlayer/sdk';
-import { findByUserId } from './store.js';
+import { findByUserId } from './store';
 
 // NEAR_NETWORK = 'mainnet' (default) | 'testnet'.
 // Intents (swap, gasless withdraw) only work on mainnet; testnet is fine
