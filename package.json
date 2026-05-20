@@ -1,0 +1,44 @@
+{
+  "name": "outlayer-example-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Example Next.js app: multi-wallet login (ETH/SOL/NEAR), cross-chain deposit, swap, stake, withdraw — all powered by @outlayer/sdk",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@near-wallet-selector/core": "^8.10.0",
+    "@near-wallet-selector/meteor-wallet": "^8.10.0",
+    "@near-wallet-selector/modal-ui": "^8.10.0",
+    "@near-wallet-selector/my-near-wallet": "^8.10.0",
+    "@noble/hashes": "^1.5.0",
+    "@outlayer/sdk": "file:../sdk-js",
+    "@solana/web3.js": "^1.95.0",
+    "borsh": "^2.0.0",
+    "bs58": "^6.0.0",
+    "jose": "^5.9.0",
+    "server-only": "^0.0.1",
+    "next": "^14.2.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "tweetnacl": "^1.0.3",
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
