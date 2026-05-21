@@ -1,23 +1,25 @@
 /**
- * Sign-in panel — three buttons, one per chain.
+ * Sign-in panel — one button per chain.
  *
- * Each button calls a thin "sign-in flow" from lib/client/*-wallet.ts. The
- * UI is intentionally dumb: error → toast (here just alert), success →
- * full page refresh so the server component re-runs and reads the new
- * session.
+ * Ethereum: multiple injected wallets (MetaMask, Rabby, Phantom's EVM mode…)
+ * announce themselves via EIP-6963. We don't guess — if more than one is
+ * found we show a picker so the user lands in the wallet they meant.
+ *
+ * Solana: Phantom. NEAR: near-connect (renders its own wallet modal).
  */
 
 'use client';
 
 import { useState } from 'react';
-import { ethSignInFlow, discoverEthWallets } from '@/lib/client/eth-wallet';
-import { solanaSignInFlow, isPhantomAvailable } from '@/lib/client/solana-wallet';
+import { type EthWalletInfo, discoverEthWallets, ethSignInFlow } from '@/lib/client/eth-wallet';
+import { isPhantomAvailable, solanaSignInFlow } from '@/lib/client/solana-wallet';
 import { nearSignInFlow } from '@/lib/client/near-wallet';
 import { buildSignInMessage } from '@/lib/client/message';
 
 export default function SignInPanel() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [ethChoices, setEthChoices] = useState<EthWalletInfo[] | null>(null);
 
   async function withBusy(chain: string, fn: () => Promise<void>) {
     setBusy(chain);
@@ -32,13 +34,26 @@ export default function SignInPanel() {
     }
   }
 
+  async function startEthereum() {
+    setError(null);
+    const wallets = await discoverEthWallets();
+    if (wallets.length === 0) {
+      setError('No Ethereum wallet detected. Install MetaMask, Rabby, etc.');
+      return;
+    }
+    if (wallets.length === 1) {
+      await withBusy('ethereum', () => ethSignInFlow(wallets[0]!.provider, buildSignInMessage));
+      return;
+    }
+    setEthChoices(wallets); // multiple — let the user pick
+  }
+
   return (
     <section className="rounded-2xl border bg-white p-8 shadow-sm">
       <h2 className="text-xl font-semibold">Sign in with any wallet</h2>
       <p className="mt-2 text-sm text-neutral-600">
-        We&apos;ll mint an OutLayer custody wallet behind the scenes. The same
-        wallet is reachable on NEAR, Ethereum, Solana, and Bitcoin — sign in
-        with whichever you have.
+        We&apos;ll mint an OutLayer custody wallet behind the scenes. The same wallet is
+        reachable on NEAR, Ethereum, Solana, and Bitcoin — sign in with whichever you have.
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
@@ -46,14 +61,7 @@ export default function SignInPanel() {
           type="button"
           className="rounded-xl border bg-neutral-50 px-4 py-3 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50"
           disabled={busy !== null}
-          onClick={() =>
-            withBusy('ethereum', async () => {
-              const wallets = await discoverEthWallets();
-              const wallet = wallets[0];
-              if (!wallet) throw new Error('No Ethereum wallet detected');
-              await ethSignInFlow(wallet.provider, buildSignInMessage);
-            })
-          }
+          onClick={startEthereum}
         >
           {busy === 'ethereum' ? 'Connecting…' : 'Sign in with Ethereum'}
         </button>
@@ -81,6 +89,39 @@ export default function SignInPanel() {
           {busy === 'near' ? 'Connecting…' : 'Sign in with NEAR'}
         </button>
       </div>
+
+      {ethChoices && (
+        <div className="mt-4 rounded-xl border bg-neutral-50 p-4">
+          <p className="mb-2 text-sm font-medium">Choose an Ethereum wallet</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {ethChoices.map((w) => (
+              <button
+                key={w.uuid}
+                type="button"
+                className="flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm hover:bg-neutral-100 disabled:opacity-50"
+                disabled={busy !== null}
+                onClick={() => {
+                  setEthChoices(null);
+                  void withBusy('ethereum', () => ethSignInFlow(w.provider, buildSignInMessage));
+                }}
+              >
+                {w.icon && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={w.icon} alt="" className="h-5 w-5 rounded" />
+                )}
+                {w.name}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="mt-2 text-xs text-neutral-500 hover:text-neutral-900"
+            onClick={() => setEthChoices(null)}
+          >
+            Cancel
+          </button>
+        </div>
+      )}
 
       {error && (
         <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>

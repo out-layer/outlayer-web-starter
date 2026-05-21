@@ -109,19 +109,37 @@ const nep413Schema = {
   },
 };
 
+// ed25519 signatures are exactly 64 bytes. NEP-413 standard is base64, but
+// some wallets return base58 — accept whichever decodes to 64 bytes.
+function decodeSignature(sig: string): Uint8Array | null {
+  try {
+    const b = new Uint8Array(Buffer.from(sig, 'base64'));
+    if (b.length === 64) return b;
+  } catch {
+    /* fall through */
+  }
+  try {
+    const b = bs58.decode(sig);
+    if (b.length === 64) return b;
+  } catch {
+    /* fall through */
+  }
+  return null;
+}
+
 export function verifyNear(args: {
   accountId: string;
   publicKey: string;   // 'ed25519:<base58>'
-  signature: string;   // base64
+  signature: string;   // base64 (NEP-413) or base58
   message: string;     // app-side message JSON
   nonce: string;       // base64 — 32 bytes
   recipient: string;
 }): string | null {
   if (!isMessageFresh(args.message)) return null;
   try {
-    const pkBase58 = args.publicKey.replace(/^ed25519:/, '');
-    const pubkey = bs58.decode(pkBase58);
-    const sig = Buffer.from(args.signature, 'base64');
+    const pubkey = bs58.decode(args.publicKey.replace(/^ed25519:/, ''));
+    const sig = decodeSignature(args.signature);
+    if (!sig) return null;
     const nonce = Buffer.from(args.nonce, 'base64');
     if (nonce.length !== 32) return null;
 
