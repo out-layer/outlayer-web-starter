@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useState } from 'react';
 import Card from './Card';
-import { getJson } from '@/lib/client/api';
-import { onRefreshBalances } from '@/lib/client/events';
+import { getJson, postJson } from '@/lib/client/api';
+import { onRefreshBalances, refreshBalances } from '@/lib/client/events';
 import { TOKEN_COLOR, fromRaw } from '@/lib/client/tokens';
 
 type TokenBalance = {
@@ -19,6 +19,8 @@ export default function BalanceCard() {
   const [bal, setBal] = useState<Balances | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [unwrapping, setUnwrapping] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -31,6 +33,21 @@ export default function BalanceCard() {
       setLoading(false);
     }
   }, []);
+
+  // wNEAR (intents) → native NEAR on the wallet's account. Unblocks staking.
+  async function unwrap() {
+    setUnwrapping(true);
+    setNote(null);
+    try {
+      const r = await postJson<{ status: string }>('/api/unwrap', {});
+      setNote(`Unwrapped to native NEAR (${r.status})`);
+      refreshBalances();
+    } catch (e) {
+      setNote((e as Error).message);
+    } finally {
+      setUnwrapping(false);
+    }
+  }
 
   // Initial load + refetch whenever an action reports a balance change.
   useEffect(() => {
@@ -65,10 +82,24 @@ export default function BalanceCard() {
                 amount={fromRaw(t.balance, t.decimals)}
                 title={`intents.near · ${t.contract}`}
                 icon={t.icon}
+                action={
+                  t.symbol === 'wNEAR' ? (
+                    <button
+                      type="button"
+                      className="ml-auto rounded-lg border px-2.5 py-1 text-xs hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+                      onClick={unwrap}
+                      disabled={unwrapping}
+                      title="Withdraw wNEAR as native NEAR to your account (gasless)"
+                    >
+                      {unwrapping ? 'Unwrapping…' : 'Unwrap → NEAR'}
+                    </button>
+                  ) : undefined
+                }
               />
             ))}
         </ul>
       )}
+      {note && <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">{note}</p>}
     </Card>
   );
 }
@@ -78,11 +109,13 @@ function Row({
   amount,
   title,
   icon,
+  action,
 }: {
   symbol: string;
   amount: string;
   title: string;
   icon: string | null;
+  action?: ReactNode;
 }) {
   return (
     <li className="flex items-center gap-3" title={title}>
@@ -98,6 +131,7 @@ function Row({
       )}
       <span className="font-mono text-sm">{amount}</span>
       <span className="text-xs text-neutral-500 dark:text-neutral-400">{symbol}</span>
+      {action}
     </li>
   );
 }
