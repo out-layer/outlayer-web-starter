@@ -1,21 +1,31 @@
 /**
- * Withdraw — gasless cross-chain withdraw via NEAR Intents.
+ * Withdraw — gasless withdraw via NEAR Intents.
  *
- * Pick destination chain + token + amount + address. The token must already
- * be in the wallet's intents.near balance. Modeled on near-fm's withdraw UX
- * (chain chips + quick amounts).
+ * To NEAR: deliver native NEAR (token "near", unwraps wNEAR) or a NEP-141.
+ * To other chains: 1Click bridges the Intents asset and delivers the chain's
+ * native asset. Token must be in the wallet's intents.near balance.
  */
 
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Card from './Card';
 import { postJson } from '@/lib/client/api';
 import { refreshBalances } from '@/lib/client/events';
-import { TOKENS, bySymbol, toRaw } from '@/lib/client/tokens';
+import { TOKENS, toRaw } from '@/lib/client/tokens';
 
-const CHAINS = ['ethereum', 'solana', 'base', 'arbitrum', 'polygon', 'optimism', 'avalanche'];
+const CHAINS = ['near', 'ethereum', 'solana', 'base', 'arbitrum', 'polygon', 'optimism', 'avalanche'];
 const QUICK = ['1', '5', '10', '25'];
+
+type WithdrawOption = { symbol: string; wire: string; decimals: number };
+
+// Native NEAR is only a withdraw target on the `near` chain.
+const NATIVE_NEAR: WithdrawOption = { symbol: 'NEAR', wire: 'near', decimals: 24 };
+const STABLES: WithdrawOption[] = TOKENS.map((t) => ({ symbol: t.symbol, wire: t.defuseId, decimals: t.decimals }));
+
+function optionsFor(chain: string): WithdrawOption[] {
+  return chain === 'near' ? [NATIVE_NEAR, ...STABLES] : STABLES;
+}
 
 type WithdrawResult = {
   request_id: string;
@@ -26,14 +36,23 @@ type WithdrawResult = {
 };
 
 export default function WithdrawCard() {
-  const [chain, setChain] = useState('ethereum');
-  const [symbol, setSymbol] = useState('USDC');
+  const [chain, setChain] = useState('near');
+  const [symbol, setSymbol] = useState('NEAR');
   const [amount, setAmount] = useState('1');
   const [to, setTo] = useState('');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const token = bySymbol(symbol);
+  const options = optionsFor(chain);
+  const token = options.find((o) => o.symbol === symbol) ?? options[0]!;
+
+  // Keep the token valid when the chain changes (e.g. NEAR-only token + EVM chain).
+  useEffect(() => {
+    if (!optionsFor(chain).some((o) => o.symbol === symbol)) {
+      setSymbol(optionsFor(chain)[0]!.symbol);
+    }
+  }, [chain, symbol]);
+
   const inputCls = 'rounded-lg border px-3 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-800';
 
   async function withdraw() {
@@ -44,7 +63,7 @@ export default function WithdrawCard() {
         chain,
         to,
         amount: toRaw(amount, token.decimals),
-        token: token.defuseId,
+        token: token.wire,
       });
       if (r.status === 'pending_approval') {
         setMessage({ ok: true, text: `Pending approval ${r.approval_id} (${r.approved ?? 0}/${r.required})` });
@@ -59,8 +78,10 @@ export default function WithdrawCard() {
     }
   }
 
+  const addrPlaceholder = chain === 'near' ? 'recipient.near' : chain === 'solana' ? 'Solana address' : '0x…';
+
   return (
-    <Card title="Withdraw" hint="Gasless cross-chain withdraw via NEAR Intents. Token must be in your intents.near balance.">
+    <Card title="Withdraw" hint="Gasless withdraw via NEAR Intents. Token must be in your intents.near balance.">
       <div className="space-y-3">
         <div className="flex flex-wrap gap-3">
           <label className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
@@ -75,10 +96,10 @@ export default function WithdrawCard() {
           </label>
           <label className="text-xs uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
             Token
-            <select className={`mt-1 block ${inputCls}`} value={symbol} onChange={(e) => setSymbol(e.target.value)}>
-              {TOKENS.map((t) => (
-                <option key={t.symbol} value={t.symbol}>
-                  {t.symbol}
+            <select className={`mt-1 block ${inputCls}`} value={token.symbol} onChange={(e) => setSymbol(e.target.value)}>
+              {options.map((o) => (
+                <option key={o.symbol} value={o.symbol}>
+                  {o.symbol}
                 </option>
               ))}
             </select>
@@ -87,7 +108,7 @@ export default function WithdrawCard() {
             Destination address
             <input
               className={`mt-1 block w-full font-mono ${inputCls}`}
-              placeholder={chain === 'solana' ? 'Solana address' : '0x…'}
+              placeholder={addrPlaceholder}
               value={to}
               onChange={(e) => setTo(e.target.value)}
             />
@@ -96,7 +117,7 @@ export default function WithdrawCard() {
 
         <div className="flex items-center gap-2">
           <input className={`w-28 ${inputCls}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
-          <span className="text-sm text-neutral-600 dark:text-neutral-400">{symbol}</span>
+          <span className="text-sm text-neutral-600 dark:text-neutral-400">{token.symbol}</span>
           {QUICK.map((v) => (
             <button
               key={v}
@@ -116,6 +137,12 @@ export default function WithdrawCard() {
             {busy ? 'Submitting…' : 'Withdraw'}
           </button>
         </div>
+        {chain === 'near' && token.symbol === 'NEAR' && (
+          <p className="text-xs text-neutral-400 dark:text-neutral-500">
+            Delivers native NEAR (unwraps your wNEAR). Recipient needs no wrap.near storage; named
+            accounts must already exist.
+          </p>
+        )}
       </div>
 
       {message && (
