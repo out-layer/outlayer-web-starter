@@ -10,10 +10,6 @@ import { usePathname } from 'next/navigation';
 
 const LINKS = [
   { href: '/wallet', label: 'Wallet' },
-  { href: '/deposit', label: 'Deposit' },
-  { href: '/swap', label: 'Buy NEAR' },
-  { href: '/stake', label: 'Stake' },
-  { href: '/withdraw', label: 'Withdraw' },
   { href: '/account', label: 'Account' },
 ];
 
