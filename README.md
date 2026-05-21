@@ -11,8 +11,10 @@ To show, in the simplest possible code, what you can build on the OutLayer SDK:
 
 1. A user signs in with any chain wallet they have — **Ethereum, Solana, or NEAR**. Each one signs a standard message (EIP-191, Solana `signMessage`, or NEP-413).
 2. The backend verifies the signature, mints an OutLayer custody wallet behind the scenes, and stores the API key in a signed session cookie. **The API key never crosses to the client.**
-3. The same custody wallet has **deterministic addresses on every supported chain** — that's the "cross-chain identity" primitive. A returning user is recognized by whichever chain wallet they sign in with.
-4. From there: deposit instructions, gasless cross-chain swaps via NEAR Intents, native NEAR staking, and gasless cross-chain withdrawals.
+3. A returning user is recognized by whichever chain wallet they sign in with — the external sign-in address maps to the same custody wallet (the "cross-chain identity" primitive). The custody wallet itself is **NEAR-native**: it exposes a NEAR address today; native ETH/SOL/BTC addresses are planned for wallet v1, not yet shipped.
+4. From there: deposit instructions, gasless cross-chain swaps via NEAR Intents, native NEAR staking, and gasless cross-chain withdrawals — all moving value through NEAR Intents, not native per-chain signing.
+
+> **⚠️ Only send whitelisted Intents assets — anything else is lost permanently.** Deposits/withdrawals only work for assets in the NEAR Intents / 1Click token catalog (`GET /wallet/v1/tokens`), on the exact chain a deposit address was issued for. Sending any other asset to a deposit address is unrecoverable.
 
 **Total code: ~30 files, every one under 200 lines.** Optimized for AI agents to fork and extend.
 
@@ -92,7 +94,7 @@ This example is structured so an AI agent can take it as a template:
 - **Server-only SDK use**: `import 'server-only'` in `lib/server/outlayer.ts` blocks accidental client-side imports. The API key cannot leak even with broken imports.
 - **API route shape**: every route reads session → builds client → calls SDK → returns JSON. Errors mapped to HTTP status via `OutlayerError`.
 - **Card pattern**: each dashboard panel is independent — own fetch, own state, own error UI. Delete or duplicate freely.
-- **Cross-chain identity**: same `wallet_id` deterministically derives addresses on NEAR / ETH / SOL / BTC. Look up the same user by any of them.
+- **Cross-chain identity**: an external sign-in address (NEAR / ETH / SOL) maps to the same custody `wallet_id` — look up the same user by any of them. (The custody wallet exposes a NEAR address today; native ETH/SOL/BTC addresses are planned, so `/api/addresses` shows them as "coming soon".)
 
 ## What this app does NOT do (intentionally)
 

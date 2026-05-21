@@ -1,7 +1,10 @@
 /**
- * GET /api/addresses — the wallet's derived address on each supported chain.
+ * GET /api/addresses — the wallet's NEAR address.
  *
- * AI agents: read-only example showing the pattern of (session → SDK → response).
+ * wallet v1 only derives a NEAR address (the custody wallet is NEAR-native;
+ * cross-chain value moves through NEAR Intents, not native per-chain keys).
+ * So we fetch only `near` — no point hitting the gated chains, which would
+ * just 400. The UI shows ETH/SOL/BTC as "coming soon" statically.
  */
 
 import { NextResponse } from 'next/server';
@@ -13,17 +16,6 @@ export async function GET() {
   if (!session) return NextResponse.json({ error: 'no_session' }, { status: 401 });
   const client = clientForUser(session.userId);
 
-  const chains = ['near', 'ethereum', 'solana', 'bitcoin'] as const;
-  const out: Record<string, { address: string; public_key: string } | { error: string }> = {};
-  await Promise.all(
-    chains.map(async (chain) => {
-      try {
-        const r = await client.getAddress(chain);
-        out[chain] = { address: r.address, public_key: r.public_key };
-      } catch (e) {
-        out[chain] = { error: (e as Error).message };
-      }
-    }),
-  );
-  return NextResponse.json({ addresses: out });
+  const near = await client.getAddress('near');
+  return NextResponse.json({ near: { address: near.address, public_key: near.public_key } });
 }
