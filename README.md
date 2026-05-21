@@ -109,7 +109,7 @@ This example is structured so an AI agent can take it as a template:
 |---|---|---|
 | `SESSION_SECRET` | (required) | 32+ random bytes for JWT signing. Generate with `openssl rand -hex 32`. |
 | `OUTLAYER_BASE_URL` | `https://api.outlayer.fastnear.com` | Override for staging / self-hosted coordinator. |
-| `VALIDATOR` | `astro-stakers.poolv1.near` | Default staking pool used by `/api/stake`. |
+| `VALIDATOR` | `zavodil.poolv1.near` | Default staking pool used by `/api/stake`. |
 | `APP_DOMAIN` | window.location.host | Used in the sign-in message's `domain` field. |
 
 ## License

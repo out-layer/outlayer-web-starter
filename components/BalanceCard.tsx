@@ -50,9 +50,20 @@ export default function BalanceCard() {
   }
 
   // Initial load + refetch whenever an action reports a balance change.
+  // On-chain settlement (esp. native_withdraw) can lag a few seconds, so we
+  // refetch immediately and again shortly after to catch the settled state.
   useEffect(() => {
     void load();
-    return onRefreshBalances(() => void load());
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const unsub = onRefreshBalances(() => {
+      void load();
+      timers.push(setTimeout(() => void load(), 3000));
+      timers.push(setTimeout(() => void load(), 7000));
+    });
+    return () => {
+      unsub();
+      for (const t of timers) clearTimeout(t);
+    };
   }, [load]);
 
   return (

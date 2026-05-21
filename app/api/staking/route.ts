@@ -12,7 +12,7 @@ import { findByUserId } from '@/lib/server/store';
 import { clientForUser } from '@/lib/server/outlayer';
 
 const RPC = process.env.NEAR_RPC_URL ?? 'https://rpc.mainnet.fastnear.com';
-const DEFAULT_VALIDATOR = process.env.VALIDATOR ?? 'astro-stakers.poolv1.near';
+const DEFAULT_VALIDATOR = process.env.VALIDATOR ?? 'zavodil.poolv1.near';
 
 async function viewStaked(validator: string, accountId: string): Promise<string> {
   const args = Buffer.from(JSON.stringify({ account_id: accountId })).toString('base64');

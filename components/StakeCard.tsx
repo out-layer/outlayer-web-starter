@@ -6,7 +6,7 @@ import { getJson } from '@/lib/client/api';
 import { onRefreshBalances, refreshBalances } from '@/lib/client/events';
 import { fromRaw, toRaw } from '@/lib/client/tokens';
 
-const DEFAULT_VALIDATOR = 'astro-stakers.poolv1.near';
+const DEFAULT_VALIDATOR = 'zavodil.poolv1.near';
 
 type StakeInfo = { available: string; staked: string };
 

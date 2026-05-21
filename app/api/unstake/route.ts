@@ -12,7 +12,7 @@ import { OutlayerError } from '@outlayer/sdk';
 import { getSession } from '@/lib/server/session';
 import { clientForUser } from '@/lib/server/outlayer';
 
-const DEFAULT_VALIDATOR = process.env.VALIDATOR ?? 'astro-stakers.poolv1.near';
+const DEFAULT_VALIDATOR = process.env.VALIDATOR ?? 'zavodil.poolv1.near';
 
 export async function POST(req: Request) {
   const session = await getSession();
