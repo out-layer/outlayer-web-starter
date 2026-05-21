@@ -10,9 +10,9 @@
 
 import { useEffect, useState } from 'react';
 import Card from './Card';
-import { postJson } from '@/lib/client/api';
-import { refreshBalances } from '@/lib/client/events';
-import { TOKENS, toRaw } from '@/lib/client/tokens';
+import { getJson, postJson } from '@/lib/client/api';
+import { onRefreshBalances, refreshBalances } from '@/lib/client/events';
+import { TOKENS, fromRaw, toRaw } from '@/lib/client/tokens';
 
 const CHAINS = ['near', 'ethereum', 'solana', 'base', 'arbitrum', 'polygon', 'optimism', 'avalanche'];
 const QUICK = ['1', '5', '10', '25'];
@@ -35,16 +35,32 @@ type WithdrawResult = {
   approved?: number | null;
 };
 
+type TokenBalance = { symbol: string; balance: string; decimals: number };
+
 export default function WithdrawCard() {
   const [chain, setChain] = useState('near');
   const [symbol, setSymbol] = useState('NEAR');
   const [amount, setAmount] = useState('1');
   const [to, setTo] = useState('');
+  const [balances, setBalances] = useState<TokenBalance[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
 
   const options = optionsFor(chain);
   const token = options.find((o) => o.symbol === symbol) ?? options[0]!;
+
+  // Native NEAR withdrawals debit wNEAR; everything else debits its own token.
+  const sourceSymbol = token.symbol === 'NEAR' ? 'wNEAR' : token.symbol;
+  const sourceBal = balances.find((b) => b.symbol === sourceSymbol);
+
+  useEffect(() => {
+    const fetchBalances = () =>
+      getJson<{ tokens: TokenBalance[] }>('/api/balance')
+        .then((r) => setBalances(r.tokens))
+        .catch(() => {});
+    void fetchBalances();
+    return onRefreshBalances(fetchBalances);
+  }, []);
 
   // Keep the token valid when the chain changes (e.g. NEAR-only token + EVM chain).
   useEffect(() => {
@@ -115,7 +131,7 @@ export default function WithdrawCard() {
           </label>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <input className={`w-28 ${inputCls}`} value={amount} onChange={(e) => setAmount(e.target.value)} />
           <span className="text-sm text-neutral-600 dark:text-neutral-400">{token.symbol}</span>
           {QUICK.map((v) => (
@@ -130,6 +146,14 @@ export default function WithdrawCard() {
           ))}
           <button
             type="button"
+            className="rounded-lg border px-2.5 py-1 text-xs hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            disabled={!sourceBal || BigInt(sourceBal.balance) === 0n}
+            onClick={() => sourceBal && setAmount(fromRaw(sourceBal.balance, sourceBal.decimals, sourceBal.decimals))}
+          >
+            Max
+          </button>
+          <button
+            type="button"
             className="ml-auto rounded-lg bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-100 dark:text-neutral-900 dark:hover:bg-neutral-300"
             disabled={busy || !to}
             onClick={withdraw}
@@ -137,6 +161,11 @@ export default function WithdrawCard() {
             {busy ? 'Submitting…' : 'Withdraw'}
           </button>
         </div>
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          Balance: <span className="font-mono">{sourceBal ? fromRaw(sourceBal.balance, sourceBal.decimals) : '0'}</span>{' '}
+          {sourceSymbol}
+          {token.symbol === 'NEAR' && ' (native NEAR is withdrawn from your wNEAR)'}
+        </p>
         {chain === 'near' && token.symbol === 'NEAR' && (
           <p className="text-xs text-neutral-400 dark:text-neutral-500">
             Delivers native NEAR (unwraps your wNEAR). Recipient needs no wrap.near storage; named
