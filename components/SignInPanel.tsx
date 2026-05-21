@@ -21,17 +21,33 @@ export default function SignInPanel() {
   const [error, setError] = useState<string | null>(null);
   const [ethChoices, setEthChoices] = useState<EthWalletInfo[] | null>(null);
 
+  const [apiKey, setApiKey] = useState('');
+
   async function withBusy(chain: string, fn: () => Promise<void>) {
     setBusy(chain);
     setError(null);
     try {
       await fn();
-      window.location.reload();
+      window.location.href = '/wallet';
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(null);
     }
+  }
+
+  async function keyLogin() {
+    await withBusy('key', async () => {
+      const res = await fetch('/api/auth/key', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey: apiKey.trim() }),
+      });
+      if (!res.ok) {
+        const err = (await res.json().catch(() => ({}))) as { message?: string; error?: string };
+        throw new Error(err.message ?? err.error ?? 'Invalid API key');
+      }
+    });
   }
 
   async function startEthereum() {
@@ -124,8 +140,34 @@ export default function SignInPanel() {
       )}
 
       {error && (
-        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
+          {error}
+        </p>
       )}
+
+      <div className="mt-6 border-t pt-6 dark:border-neutral-800">
+        <p className="mb-2 text-sm font-medium">Or sign in with an API key</p>
+        <p className="mb-3 text-xs text-neutral-500 dark:text-neutral-400">
+          Have an existing wallet? Paste its <code>wk_…</code> key (or scan the QR from another device&apos;s Account page).
+        </p>
+        <div className="flex gap-2">
+          <input
+            type="password"
+            placeholder="wk_…"
+            className="flex-1 rounded-lg border px-3 py-2 font-mono text-sm dark:border-neutral-700 dark:bg-neutral-800"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+          />
+          <button
+            type="button"
+            className="rounded-lg border px-4 py-2 text-sm hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800"
+            disabled={busy !== null || !apiKey.trim().startsWith('wk_')}
+            onClick={keyLogin}
+          >
+            {busy === 'key' ? 'Signing in…' : 'Sign in'}
+          </button>
+        </div>
+      </div>
     </section>
   );
 }

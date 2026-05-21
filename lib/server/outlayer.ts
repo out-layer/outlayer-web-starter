@@ -57,6 +57,16 @@ export function clientForUser(userId: string): OutlayerClient {
   return new OutlayerClient(clientOpts(user.apiKey));
 }
 
+/**
+ * Validate a raw API key by deriving its NEAR address. Used by key-login —
+ * if the key is bad, getAddress throws. Returns the wallet identity.
+ */
+export async function inspectApiKey(apiKey: string): Promise<{ walletId: string; nearAccountId: string }> {
+  const client = new OutlayerClient(clientOpts(apiKey));
+  const addr = await client.getAddress('near');
+  return { walletId: addr.wallet_id, nearAccountId: addr.address };
+}
+
 export function currentNetwork(): Network {
   return NETWORK;
 }

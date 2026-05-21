@@ -11,8 +11,8 @@
 
 import 'server-only';
 import { createSession } from './session';
-import { findByAddress, create, type Chain, type UserWallet } from './store';
-import { registerWallet } from './outlayer';
+import { findByAddress, findByUserId, create, type Chain, type UserWallet } from './store';
+import { registerWallet, inspectApiKey } from './outlayer';
 
 export async function signInWithAddress(chain: Chain, address: string): Promise<UserWallet> {
   const existing = findByAddress(chain, address);
@@ -30,5 +30,28 @@ export async function signInWithAddress(chain: Chain, address: string): Promise<
     linkedAddresses: [{ chain, address }],
   });
   await createSession(user.userId);
+  return user;
+}
+
+/**
+ * Sign in by presenting an existing API key (key-login / QR import). The key
+ * IS the credential — we validate it by deriving its address, then attach a
+ * session to the corresponding wallet.
+ */
+export async function signInWithApiKey(apiKey: string): Promise<UserWallet> {
+  const { walletId, nearAccountId } = await inspectApiKey(apiKey);
+  const existing = findByUserId(walletId);
+  if (existing) {
+    await createSession(walletId);
+    return existing;
+  }
+  const user = create({
+    userId: walletId,
+    apiKey,
+    walletId,
+    nearAccountId,
+    linkedAddresses: [],
+  });
+  await createSession(walletId);
   return user;
 }
