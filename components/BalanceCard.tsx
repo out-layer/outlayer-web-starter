@@ -3,12 +3,10 @@
 import { useEffect, useState } from 'react';
 import Card from './Card';
 import { getJson } from '@/lib/client/api';
-import { formatYocto } from '@/lib/client/format';
+import { TOKEN_COLOR, fromRaw } from '@/lib/client/tokens';
 
-type Balances = {
-  near_on_chain: string;
-  intents: Record<string, string>;
-};
+type TokenBalance = { symbol: string; contract: string; decimals: number; balance: string };
+type Balances = { near_on_chain: string; tokens: TokenBalance[] };
 
 export default function BalanceCard() {
   const [bal, setBal] = useState<Balances | null>(null);
@@ -22,30 +20,34 @@ export default function BalanceCard() {
 
   return (
     <Card title="Balances" hint="Native NEAR balance + intents.near positions.">
-      {error && <p className="text-sm text-red-700">Couldn&apos;t load balance: {error}</p>}
+      {error && <p className="text-sm text-red-700 dark:text-red-400">Couldn&apos;t load balance: {error}</p>}
       {!bal && !error && <p className="text-sm text-neutral-500">Loading…</p>}
       {bal && (
-        <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-[12rem_1fr]">
-          <dt className="text-neutral-500">Native NEAR</dt>
-          <dd className="font-mono">{formatYocto(bal.near_on_chain)} NEAR</dd>
-          {Object.entries(bal.intents).map(([token, amount]) => (
-            <ContentRow key={token} token={token} amount={amount} />
+        <ul className="space-y-2">
+          <Row symbol="NEAR" amount={fromRaw(bal.near_on_chain, 24)} title="Native NEAR balance" />
+          {bal.tokens.map((t) => (
+            <Row
+              key={t.contract}
+              symbol={t.symbol}
+              amount={fromRaw(t.balance, t.decimals)}
+              title={`intents.near · ${t.contract}`}
+            />
           ))}
-        </dl>
+        </ul>
       )}
     </Card>
   );
 }
 
-function ContentRow({ token, amount }: { token: string; amount: string }) {
-  // wrap.near = 24 decimals; USDT = 6. Quick heuristic.
-  const formatted = token.includes('usdt')
-    ? `${(BigInt(amount) / 1_000_000n).toString()}.${(BigInt(amount) % 1_000_000n).toString().padStart(6, '0').slice(0, 2)}`
-    : `${formatYocto(amount)}`;
+function Row({ symbol, amount, title }: { symbol: string; amount: string; title: string }) {
+  const color = TOKEN_COLOR[symbol] ?? 'bg-neutral-500';
   return (
-    <>
-      <dt className="text-neutral-500">intents.near: {token}</dt>
-      <dd className="font-mono">{formatted}</dd>
-    </>
+    <li className="flex items-center gap-3" title={title}>
+      <span className={`flex h-7 w-7 items-center justify-center rounded-full text-[10px] font-bold text-white ${color}`}>
+        {symbol.slice(0, 4)}
+      </span>
+      <span className="font-mono text-sm">{amount}</span>
+      <span className="text-xs text-neutral-500 dark:text-neutral-400">{symbol}</span>
+    </li>
   );
 }

@@ -69,3 +69,51 @@ export async function nearSignInFlow(buildMessage: () => string): Promise<void> 
     throw new Error(`Sign-in failed: ${err.error ?? res.statusText}`);
   }
 }
+
+/**
+ * Deposit a NEP-141 token (or native NEAR) from the user's connected NEAR
+ * wallet straight into the custody wallet's intents.near balance.
+ *
+ * This is a plain NEAR transaction signed by the user's wallet — no 1Click
+ * bridge. `ft_transfer_call` to intents.near with `msg = custodyNearAddress`
+ * routes the deposit to the custody wallet. Native NEAR is wrapped first.
+ */
+export async function nearDepositToIntents(opts: {
+  custodyNearAddress: string;
+  contract: string;
+  amountRaw: string;
+  isNative: boolean;
+}): Promise<void> {
+  const c = getConnector();
+  let wallet = await c.wallet().catch(() => null);
+  if (!wallet) wallet = await c.connect();
+
+  const ftTransferCall = {
+    type: 'FunctionCall' as const,
+    params: {
+      methodName: 'ft_transfer_call',
+      args: { receiver_id: 'intents.near', amount: opts.amountRaw, msg: opts.custodyNearAddress },
+      gas: '100000000000000',
+      deposit: '1',
+    },
+  };
+
+  if (opts.isNative) {
+    await wallet.signAndSendTransactions({
+      transactions: [
+        {
+          receiverId: 'wrap.near',
+          actions: [
+            {
+              type: 'FunctionCall',
+              params: { methodName: 'near_deposit', args: {}, gas: '10000000000000', deposit: opts.amountRaw },
+            },
+          ],
+        },
+        { receiverId: 'wrap.near', actions: [ftTransferCall] },
+      ],
+    });
+  } else {
+    await wallet.signAndSendTransaction({ receiverId: opts.contract, actions: [ftTransferCall] });
+  }
+}

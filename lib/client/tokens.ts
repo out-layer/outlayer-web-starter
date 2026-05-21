@@ -22,6 +22,27 @@ export const TOKENS: TokenDef[] = [
 
 export const WNEAR: TokenDef = { symbol: 'wNEAR', defuseId: 'nep141:wrap.near', decimals: 24 };
 
+// Tokens you can deposit straight from a NEAR wallet (ft_transfer_call to
+// intents.near). `contract` is the bare NEP-141 account; `isNative` wraps
+// NEAR → wNEAR first.
+export type NearToken = { symbol: string; contract: string; decimals: number; isNative?: boolean };
+
+export const NEAR_DEPOSIT_TOKENS: NearToken[] = [
+  { symbol: 'NEAR', contract: 'wrap.near', decimals: 24, isNative: true },
+  { symbol: 'USDC', contract: '17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1', decimals: 6 },
+  { symbol: 'USDT', contract: 'usdt.tether-token.near', decimals: 6 },
+];
+
+// Brand-ish colors for the little token badge in the UI.
+export const TOKEN_COLOR: Record<string, string> = {
+  USDT: 'bg-teal-500',
+  USDC: 'bg-blue-500',
+  ETH: 'bg-indigo-500',
+  SOL: 'bg-purple-500',
+  NEAR: 'bg-neutral-700',
+  wNEAR: 'bg-neutral-700',
+};
+
 export function bySymbol(symbol: string): TokenDef {
   return TOKENS.find((t) => t.symbol === symbol) ?? TOKENS[0]!;
 }

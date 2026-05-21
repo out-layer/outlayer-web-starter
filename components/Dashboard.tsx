@@ -54,7 +54,7 @@ export default function Dashboard(props: DashboardProps) {
 
       <AddressesCard />
       <BalanceCard />
-      <DepositCard />
+      <DepositCard nearAccountId={props.nearAccountId} />
       <SwapCard />
       <StakeCard />
       <WithdrawCard />

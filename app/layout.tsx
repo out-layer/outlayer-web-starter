@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export const metadata: Metadata = {
   title: 'OutLayer Example App',
@@ -17,7 +18,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: tiny trusted no-flash theme script */}
         <script dangerouslySetInnerHTML={{ __html: noFlashTheme }} />
       </head>
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        {children}
+        <ThemeToggle />
+      </body>
     </html>
   );
 }
