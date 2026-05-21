@@ -55,15 +55,18 @@ export default function BalanceCard() {
       {bal && (
         <ul className="space-y-2">
           <Row symbol="NEAR" amount={fromRaw(bal.near_on_chain, 24)} title="Native NEAR balance" icon={null} />
-          {bal.tokens.map((t) => (
-            <Row
-              key={t.contract}
-              symbol={t.symbol}
-              amount={fromRaw(t.balance, t.decimals)}
-              title={`intents.near · ${t.contract}`}
-              icon={t.icon}
-            />
-          ))}
+          {bal.tokens
+            // wNEAR is a transient swap output — only surface it when held.
+            .filter((t) => t.symbol !== 'wNEAR' || BigInt(t.balance) > 0n)
+            .map((t) => (
+              <Row
+                key={t.contract}
+                symbol={t.symbol}
+                amount={fromRaw(t.balance, t.decimals)}
+                title={`intents.near · ${t.contract}`}
+                icon={t.icon}
+              />
+            ))}
         </ul>
       )}
     </Card>

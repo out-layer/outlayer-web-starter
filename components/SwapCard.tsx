@@ -83,6 +83,7 @@ export default function SwapCard() {
       });
       const got = r.amount_out ? `${fromRaw(r.amount_out, WNEAR.decimals)} wNEAR` : r.status;
       setResult(`Swapped → ${got} (request ${r.request_id})`);
+      setAmount(''); // swap done — clear so the stale amount doesn't read as "exceeds balance"
       refreshBalances();
     } catch (e) {
       setError((e as Error).message);

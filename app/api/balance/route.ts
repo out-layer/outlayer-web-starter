@@ -15,6 +15,8 @@ const TRACKED = [
   { symbol: 'USDT', contract: 'usdt.tether-token.near', decimals: 6 },
   { symbol: 'ETH', contract: 'eth.omft.near', decimals: 18 },
   { symbol: 'SOL', contract: 'sol.omft.near', decimals: 9 },
+  // wNEAR — swap output. Shown only when held (filtered in BalanceCard).
+  { symbol: 'wNEAR', contract: 'wrap.near', decimals: 24 },
 ];
 
 export async function GET() {
