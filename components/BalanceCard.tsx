@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Card from './Card';
+import { getJson } from '@/lib/client/api';
 import { formatYocto } from '@/lib/client/format';
 
 type Balances = {
@@ -11,16 +12,18 @@ type Balances = {
 
 export default function BalanceCard() {
   const [bal, setBal] = useState<Balances | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/balance')
-      .then((r) => r.json())
-      .then(setBal);
+    getJson<Balances>('/api/balance')
+      .then(setBal)
+      .catch((e) => setError((e as Error).message));
   }, []);
 
   return (
     <Card title="Balances" hint="Native NEAR balance + intents.near positions.">
-      {!bal && <p className="text-sm text-neutral-500">Loading…</p>}
+      {error && <p className="text-sm text-red-700">Couldn&apos;t load balance: {error}</p>}
+      {!bal && !error && <p className="text-sm text-neutral-500">Loading…</p>}
       {bal && (
         <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-[12rem_1fr]">
           <dt className="text-neutral-500">Native NEAR</dt>

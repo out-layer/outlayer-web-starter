@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Card from './Card';
+import { getJson } from '@/lib/client/api';
 
 type Info = {
   near_address: string;
@@ -11,14 +12,18 @@ type Info = {
 
 export default function DepositCard() {
   const [info, setInfo] = useState<Info | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/deposit-info').then((r) => r.json()).then(setInfo);
+    getJson<Info>('/api/deposit-info')
+      .then(setInfo)
+      .catch((e) => setError((e as Error).message));
   }, []);
 
   return (
     <Card title="Deposit" hint="Move funds in from your external chain wallets.">
-      {!info && <p className="text-sm text-neutral-500">Loading…</p>}
+      {error && <p className="text-sm text-red-700">Couldn&apos;t load deposit info: {error}</p>}
+      {!info && !error && <p className="text-sm text-neutral-500">Loading…</p>}
       {info && (
         <div className="space-y-3 text-sm">
           <p>

@@ -2,16 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import Card from './Card';
+import { getJson } from '@/lib/client/api';
 
 type AddressMap = Record<string, { address: string; public_key: string } | { error: string }>;
 
 export default function AddressesCard() {
   const [addrs, setAddrs] = useState<AddressMap | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/addresses')
-      .then((r) => r.json())
-      .then((d) => setAddrs(d.addresses));
+    getJson<{ addresses: AddressMap }>('/api/addresses')
+      .then((d) => setAddrs(d.addresses))
+      .catch((e) => setError((e as Error).message));
   }, []);
 
   return (
@@ -19,7 +21,8 @@ export default function AddressesCard() {
       title="Cross-chain addresses"
       hint="One wallet, four chains. Same identity everywhere — that's the cross-chain login primitive."
     >
-      {!addrs && <p className="text-sm text-neutral-500">Loading…</p>}
+      {error && <p className="text-sm text-red-700">Couldn&apos;t load addresses: {error}</p>}
+      {!addrs && !error && <p className="text-sm text-neutral-500">Loading…</p>}
       {addrs && (
         <dl className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-[6rem_1fr]">
           {Object.entries(addrs).map(([chain, info]) => (

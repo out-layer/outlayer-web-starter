@@ -3,7 +3,13 @@
  *
  * AI agents: replace this with a real database (Postgres, SQLite, Redis…).
  * The public surface is small on purpose: 4 functions, plain types. Drop in
- * Prisma/Drizzle/etc. and keep the function names — nothing else needs to change.
+ * Prisma/Drizzle/etc. and keep the function names — nothing else changes.
+ *
+ * Why globalThis? Next.js dev compiles RSC pages and route handlers into
+ * SEPARATE module graphs, so a plain `const map = new Map()` gets duplicated
+ * across them — the page would see a user that the API route can't. Pinning
+ * the state to globalThis makes it a true process-wide singleton and also
+ * survives hot-module-reload. (A real DB sidesteps this entirely.)
  */
 
 export type Chain = 'ethereum' | 'solana' | 'near';
@@ -16,38 +22,43 @@ export type UserWallet = {
   linkedAddresses: Array<{ chain: Chain; address: string }>;
 };
 
-// In-memory map. Replace with your DB.
-const byUserId = new Map<string, UserWallet>();
-const indexByAddress = new Map<string, string>(); // `${chain}:${address}` → userId
+type StoreState = {
+  byUserId: Map<string, UserWallet>;
+  indexByAddress: Map<string, string>; // `${chain}:${address}` → userId
+};
+
+const g = globalThis as unknown as { __outlayerStore?: StoreState };
+const state: StoreState =
+  g.__outlayerStore ?? (g.__outlayerStore = { byUserId: new Map(), indexByAddress: new Map() });
 
 function key(chain: Chain, address: string): string {
   return `${chain}:${address.toLowerCase()}`;
 }
 
 export function findByAddress(chain: Chain, address: string): UserWallet | null {
-  const userId = indexByAddress.get(key(chain, address));
-  return userId ? (byUserId.get(userId) ?? null) : null;
+  const userId = state.indexByAddress.get(key(chain, address));
+  return userId ? (state.byUserId.get(userId) ?? null) : null;
 }
 
 export function findByUserId(userId: string): UserWallet | null {
-  return byUserId.get(userId) ?? null;
+  return state.byUserId.get(userId) ?? null;
 }
 
 export function create(user: UserWallet): UserWallet {
-  byUserId.set(user.userId, user);
+  state.byUserId.set(user.userId, user);
   for (const link of user.linkedAddresses) {
-    indexByAddress.set(key(link.chain, link.address), user.userId);
+    state.indexByAddress.set(key(link.chain, link.address), user.userId);
   }
   return user;
 }
 
 export function linkAddress(userId: string, chain: Chain, address: string): UserWallet | null {
-  const u = byUserId.get(userId);
+  const u = state.byUserId.get(userId);
   if (!u) return null;
   if (u.linkedAddresses.some((l) => l.chain === chain && l.address.toLowerCase() === address.toLowerCase())) {
     return u;
   }
   u.linkedAddresses.push({ chain, address });
-  indexByAddress.set(key(chain, address), userId);
+  state.indexByAddress.set(key(chain, address), userId);
   return u;
 }
