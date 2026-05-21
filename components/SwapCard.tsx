@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Card from './Card';
 import { postJson } from '@/lib/client/api';
+import { refreshBalances } from '@/lib/client/events';
 import { TOKENS, WNEAR, bySymbol, fromRaw, toRaw } from '@/lib/client/tokens';
 
 type Quote = { amount_out?: string; min_amount_out?: string };
@@ -66,6 +67,7 @@ export default function SwapCard() {
       });
       const got = r.amount_out ? `${fromRaw(r.amount_out, WNEAR.decimals)} wNEAR` : r.status;
       setResult(`Swapped → ${got} (request ${r.request_id})`);
+      refreshBalances();
     } catch (e) {
       setError((e as Error).message);
     } finally {

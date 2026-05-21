@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Card from './Card';
 import { getJson } from '@/lib/client/api';
+import { onRefreshBalances } from '@/lib/client/events';
 import { TOKEN_COLOR, fromRaw } from '@/lib/client/tokens';
 
 type TokenBalance = {
@@ -17,15 +18,38 @@ type Balances = { near_on_chain: string; tokens: TokenBalance[] };
 export default function BalanceCard() {
   const [bal, setBal] = useState<Balances | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    getJson<Balances>('/api/balance')
-      .then(setBal)
-      .catch((e) => setError((e as Error).message));
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      setBal(await getJson<Balances>('/api/balance'));
+      setError(null);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  // Initial load + refetch whenever an action reports a balance change.
+  useEffect(() => {
+    void load();
+    return onRefreshBalances(() => void load());
+  }, [load]);
 
   return (
     <Card title="Balances" hint="Native NEAR balance + intents.near positions.">
+      <div className="mb-2 flex items-center justify-end">
+        <button
+          type="button"
+          className="text-xs text-neutral-500 hover:text-neutral-900 disabled:opacity-50 dark:text-neutral-400 dark:hover:text-neutral-100"
+          onClick={() => void load()}
+          disabled={loading}
+        >
+          {loading ? 'Refreshing…' : 'Refresh'}
+        </button>
+      </div>
       {error && <p className="text-sm text-red-700 dark:text-red-400">Couldn&apos;t load balance: {error}</p>}
       {!bal && !error && <p className="text-sm text-neutral-500">Loading…</p>}
       {bal && (
@@ -60,7 +84,6 @@ function Row({
   return (
     <li className="flex items-center gap-3" title={title}>
       {icon ? (
-        // ft_metadata icons are data: URIs, so next/image isn't needed.
         // eslint-disable-next-line @next/next/no-img-element
         <img src={icon} alt={symbol} className="h-7 w-7 rounded-full bg-white object-contain" />
       ) : (

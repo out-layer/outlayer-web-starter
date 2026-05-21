@@ -12,6 +12,7 @@
 import { useState } from 'react';
 import Card from './Card';
 import { getJson, postJson } from '@/lib/client/api';
+import { refreshBalances } from '@/lib/client/events';
 import { NEAR_DEPOSIT_TOKENS, toRaw } from '@/lib/client/tokens';
 import { nearDepositToIntents } from '@/lib/client/near-wallet';
 
@@ -65,6 +66,7 @@ export default function DepositCard({ nearAccountId }: { nearAccountId: string }
       });
       setResult(`Deposited ${amount} ${nearSymbol} into intents.near`);
       setStep('done');
+      refreshBalances();
     } catch (e) {
       setError((e as Error).message);
       setStep('error');
@@ -98,6 +100,7 @@ export default function DepositCard({ nearAccountId }: { nearAccountId: string }
           setResult(`Deposited ~${(Number(intent.amount_out) / 1_000_000).toFixed(2)} ${token}`);
           setStep('done');
           setIntent(null);
+          refreshBalances();
           return;
         }
         if (s.status === 'failed' || s.status === 'expired') throw new Error(`Bridge ${s.status}`);

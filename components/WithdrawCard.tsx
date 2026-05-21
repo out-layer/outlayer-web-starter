@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import Card from './Card';
 import { postJson } from '@/lib/client/api';
+import { refreshBalances } from '@/lib/client/events';
 import { TOKENS, bySymbol, toRaw } from '@/lib/client/tokens';
 
 const CHAINS = ['ethereum', 'solana', 'base', 'arbitrum', 'polygon', 'optimism', 'avalanche'];
@@ -50,6 +51,7 @@ export default function WithdrawCard() {
       } else {
         setMessage({ ok: true, text: `Submitted ${r.request_id} — ${r.status}` });
       }
+      refreshBalances();
     } catch (e) {
       setMessage({ ok: false, text: (e as Error).message });
     } finally {
