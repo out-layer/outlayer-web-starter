@@ -17,7 +17,7 @@
     "@near-wallet-selector/modal-ui": "^8.10.0",
     "@near-wallet-selector/my-near-wallet": "^8.10.0",
     "@noble/hashes": "^1.5.0",
-    "@outlayer/sdk": "file:../sdk-js",
+    "@outlayer/sdk": "^0.1.0-alpha.2",
     "@solana/web3.js": "^1.95.0",
     "borsh": "^2.0.0",
     "bs58": "^6.0.0",
