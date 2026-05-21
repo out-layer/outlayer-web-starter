@@ -13,9 +13,10 @@ async function parse<T>(res: Response): Promise<T> {
   const text = await res.text();
   const data = text ? (JSON.parse(text) as unknown) : null;
   if (!res.ok) {
-    const msg =
-      (data && typeof data === 'object' && 'error' in data && (data as { error?: string }).error) ||
-      `${res.status} ${res.statusText}`;
+    // Prefer the human-readable `message` (e.g. "Amount is too low for bridge,
+    // try at least 204868") over the bare `error` code ("bad_request").
+    const obj = data && typeof data === 'object' ? (data as { error?: string; message?: string }) : null;
+    const msg = obj?.message || obj?.error || `${res.status} ${res.statusText}`;
     throw new Error(String(msg));
   }
   return data as T;
