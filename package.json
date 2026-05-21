@@ -14,7 +14,7 @@
   "dependencies": {
     "@hot-labs/near-connect": "^0.11.4",
     "@noble/hashes": "^1.5.0",
-    "@outlayer/sdk": "file:../sdk-js",
+    "@outlayer/sdk": "^0.1.0-alpha.3",
     "@solana/web3.js": "^1.95.0",
     "borsh": "^2.0.0",
     "bs58": "^6.0.0",
