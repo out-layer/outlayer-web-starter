@@ -38,7 +38,7 @@ export default function SwapCard() {
       <div className="flex items-center gap-3">
         <input
           type="text"
-          className="w-32 rounded-lg border px-3 py-2 text-sm"
+          className="w-32 rounded-lg border px-3 py-2 dark:border-neutral-700 dark:bg-neutral-800 text-sm"
           value={usdtAmount}
           onChange={(e) => setUsdtAmount(e.target.value)}
         />

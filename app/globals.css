@@ -2,10 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: light dark;
+/* Light is the default. Dark applies only when <html class="dark"> is set by
+   the theme toggle — we do NOT use `color-scheme: light dark`, which would let
+   the OS flip colors out from under our Tailwind classes. */
+body {
+  @apply bg-neutral-50 text-neutral-900;
 }
 
-body {
-  @apply bg-neutral-50 text-neutral-900 antialiased;
+.dark body {
+  @apply bg-neutral-950 text-neutral-100;
 }

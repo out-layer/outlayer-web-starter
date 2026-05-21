@@ -38,7 +38,7 @@ export default function StakeCard() {
           Validator
           <input
             type="text"
-            className="mt-1 w-full rounded-lg border px-3 py-2 text-sm font-normal normal-case"
+            className="mt-1 w-full rounded-lg border px-3 py-2 dark:border-neutral-700 dark:bg-neutral-800 text-sm font-normal normal-case"
             value={validator}
             onChange={(e) => setValidator(e.target.value)}
           />
@@ -46,7 +46,7 @@ export default function StakeCard() {
         <div className="flex items-center gap-3">
           <input
             type="text"
-            className="w-32 rounded-lg border px-3 py-2 text-sm"
+            className="w-32 rounded-lg border px-3 py-2 dark:border-neutral-700 dark:bg-neutral-800 text-sm"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
           />

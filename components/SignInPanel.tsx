@@ -49,9 +49,9 @@ export default function SignInPanel() {
   }
 
   return (
-    <section className="rounded-2xl border bg-white p-8 shadow-sm">
+    <section className="rounded-2xl border bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <h2 className="text-xl font-semibold">Sign in with any wallet</h2>
-      <p className="mt-2 text-sm text-neutral-600">
+      <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
         We&apos;ll mint an OutLayer custody wallet behind the scenes. The same wallet is
         reachable on NEAR, Ethereum, Solana, and Bitcoin — sign in with whichever you have.
       </p>
@@ -59,7 +59,7 @@ export default function SignInPanel() {
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
         <button
           type="button"
-          className="rounded-xl border bg-neutral-50 px-4 py-3 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50"
+          className="rounded-xl border bg-neutral-50 px-4 py-3 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700"
           disabled={busy !== null}
           onClick={startEthereum}
         >
@@ -68,7 +68,7 @@ export default function SignInPanel() {
 
         <button
           type="button"
-          className="rounded-xl border bg-neutral-50 px-4 py-3 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50"
+          className="rounded-xl border bg-neutral-50 px-4 py-3 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700"
           disabled={busy !== null}
           onClick={() =>
             withBusy('solana', async () => {
@@ -82,7 +82,7 @@ export default function SignInPanel() {
 
         <button
           type="button"
-          className="rounded-xl border bg-neutral-50 px-4 py-3 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50"
+          className="rounded-xl border bg-neutral-50 px-4 py-3 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:hover:bg-neutral-700"
           disabled={busy !== null}
           onClick={() => withBusy('near', () => nearSignInFlow(buildSignInMessage))}
         >
@@ -91,14 +91,14 @@ export default function SignInPanel() {
       </div>
 
       {ethChoices && (
-        <div className="mt-4 rounded-xl border bg-neutral-50 p-4">
+        <div className="mt-4 rounded-xl border bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800">
           <p className="mb-2 text-sm font-medium">Choose an Ethereum wallet</p>
           <div className="grid gap-2 sm:grid-cols-2">
             {ethChoices.map((w) => (
               <button
                 key={w.uuid}
                 type="button"
-                className="flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm hover:bg-neutral-100 disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg border bg-white px-3 py-2 text-sm hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-700"
                 disabled={busy !== null}
                 onClick={() => {
                   setEthChoices(null);
