@@ -41,7 +41,7 @@ export default function AccountPanel() {
 
   return (
     <>
-      <Card title="Identity" hint="Your custody wallet and the addresses you've signed in with.">
+      <Card title="Identity" hint="Your OutLayer account and the addresses you've signed in with.">
         {error && <p className="text-sm text-red-700 dark:text-red-400">{error}</p>}
         {!acct && !error && <p className="text-sm text-neutral-500">Loading…</p>}
         {acct && (

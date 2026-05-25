@@ -14,7 +14,7 @@
 
 import { NearConnector } from '@hot-labs/near-connect';
 
-const RECIPIENT = 'outlayer-example-app';
+const RECIPIENT = 'outlayer-web-starter';
 // Default mainnet (NEAR Intents only work on mainnet). Override with
 // NEXT_PUBLIC_NEAR_NETWORK=testnet to match a testnet backend.
 const NETWORK = (process.env.NEXT_PUBLIC_NEAR_NETWORK as 'mainnet' | 'testnet') ?? 'mainnet';
@@ -72,11 +72,11 @@ export async function nearSignInFlow(buildMessage: () => string): Promise<void> 
 
 /**
  * Deposit a NEP-141 token (or native NEAR) from the user's connected NEAR
- * wallet straight into the custody wallet's intents.near balance.
+ * wallet straight into the OutLayer account's intents.near balance.
  *
  * This is a plain NEAR transaction signed by the user's wallet — no 1Click
  * bridge. `ft_transfer_call` to intents.near with `msg = custodyNearAddress`
- * routes the deposit to the custody wallet. Native NEAR is wrapped first.
+ * routes the deposit to the OutLayer account. Native NEAR is wrapped first.
  */
 export async function nearDepositToIntents(opts: {
   custodyNearAddress: string;

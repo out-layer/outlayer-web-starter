@@ -1,5 +1,5 @@
 /**
- * Home — sign-in. If already authed, go straight to /wallet.
+ * Home — sign-in. If already authed, go straight to /dashboard.
  */
 
 import { redirect } from 'next/navigation';
@@ -12,12 +12,12 @@ export const dynamic = 'force-dynamic';
 export default async function Home() {
   const session = await getSession();
   const user = session ? findByUserId(session.userId) : null;
-  if (user) redirect('/wallet');
+  if (user) redirect('/dashboard');
 
   return (
     <main className="mx-auto max-w-3xl p-6 sm:p-10">
       <header className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold tracking-tight">OutLayer Example</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">OutLayer Web Starter</h1>
         <a
           className="text-sm text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-100"
           href="https://github.com/out-layer/sdk-js"

@@ -1,8 +1,8 @@
 {
-  "name": "outlayer-example-app",
+  "name": "outlayer-web-starter",
   "version": "0.1.0",
   "private": true,
-  "description": "Example Next.js app: multi-wallet login (ETH/SOL/NEAR), cross-chain deposit, swap, stake, withdraw — all powered by @outlayer/sdk",
+  "description": "Next.js starter for adding blockchain to a web app — multi-wallet sign-in (ETH/SOL/NEAR), cross-chain deposit, gasless swap, stake, withdraw — powered by @outlayer/sdk",
   "license": "MIT",
   "scripts": {
     "dev": "next dev",

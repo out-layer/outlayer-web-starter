@@ -1,5 +1,5 @@
 /**
- * Wallet — the main screen. Everything the user operates lives here:
+ * Dashboard — the main screen. Everything the user operates lives here:
  * address, balances, and all four actions (deposit, buy NEAR, stake, withdraw).
  * Account (API key / QR) is the only separate page.
  */
@@ -15,7 +15,7 @@ import WithdrawCard from '@/components/WithdrawCard';
 
 export const dynamic = 'force-dynamic';
 
-export default async function WalletPage() {
+export default async function DashboardPage() {
   const session = await getSession();
   const user = session ? findByUserId(session.userId) : null;
   if (!user) return null; // layout guards; satisfies the type

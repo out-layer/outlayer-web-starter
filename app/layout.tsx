@@ -4,8 +4,8 @@ import './globals.css';
 import ThemeToggle from '@/components/ThemeToggle';
 
 export const metadata: Metadata = {
-  title: 'OutLayer Example App',
-  description: 'Multi-wallet login + cross-chain DeFi powered by @outlayer/sdk',
+  title: 'OutLayer Web Starter',
+  description: 'Add blockchain to a web app — multi-wallet sign-in + gasless cross-chain, powered by @outlayer/sdk',
 };
 
 // Apply the saved theme before first paint to avoid a flash of the wrong theme.

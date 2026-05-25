@@ -1,6 +1,6 @@
 /**
- * Authenticated app layout — shared nav + auth guard for /wallet, /deposit,
- * /swap, /stake, /withdraw, /account. Redirects home if there's no session.
+ * Authenticated app layout — shared nav + auth guard for /dashboard and
+ * /account. Redirects home if there's no session.
  */
 
 import type { ReactNode } from 'react';

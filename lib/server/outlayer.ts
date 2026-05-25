@@ -1,7 +1,7 @@
 /**
  * Server-side @outlayer/sdk wrapper.
  *
- * The OutLayer API key is the secret that controls a custody wallet —
+ * The OutLayer API key is the secret that controls an account —
  * it MUST stay on the server. Every function here either reads the
  * caller's session and pulls the key out of the store, or operates
  * on the public `register` endpoint.

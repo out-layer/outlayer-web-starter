@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const LINKS = [
-  { href: '/wallet', label: 'Wallet' },
+  { href: '/dashboard', label: 'Dashboard' },
   { href: '/account', label: 'Account' },
 ];
 

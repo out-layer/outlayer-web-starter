@@ -1,7 +1,7 @@
 /**
- * GET /api/addresses — the wallet's NEAR address.
+ * GET /api/addresses — the account's NEAR address.
  *
- * wallet v1 only derives a NEAR address (the custody wallet is NEAR-native;
+ * wallet v1 only derives a NEAR address (the OutLayer account is NEAR-native;
  * cross-chain value moves through NEAR Intents, not native per-chain keys).
  * So we fetch only `near` — no point hitting the gated chains, which would
  * just 400. The UI shows ETH/SOL/BTC as "coming soon" statically.

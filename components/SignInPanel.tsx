@@ -28,7 +28,7 @@ export default function SignInPanel() {
     setError(null);
     try {
       await fn();
-      window.location.href = '/wallet';
+      window.location.href = '/dashboard';
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -68,8 +68,9 @@ export default function SignInPanel() {
     <section className="rounded-2xl border bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
       <h2 className="text-xl font-semibold">Sign in with any wallet</h2>
       <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">
-        We&apos;ll mint an OutLayer custody wallet behind the scenes. The same wallet is
-        reachable on NEAR, Ethereum, Solana, and Bitcoin — sign in with whichever you have.
+        We&apos;ll create an OutLayer account behind the scenes — keys held in a TEE, gas
+        covered for you. The same account is reachable on NEAR, Ethereum, Solana, and
+        Bitcoin; sign in with whichever wallet you already have.
       </p>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-3">

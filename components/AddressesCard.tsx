@@ -26,8 +26,8 @@ export default function AddressesCard() {
 
   return (
     <Card
-      title="Wallet address"
-      hint="Your custody wallet lives on NEAR. Send NEAR or NEP-141 tokens here directly. To bring funds from Ethereum, Solana, and other chains, use Deposit below — bridged in gaslessly via NEAR Intents."
+      title="Account address"
+      hint="Your OutLayer account lives on NEAR. Send NEAR or NEP-141 tokens here directly. To bring funds from Ethereum, Solana, and other chains, use Deposit below — bridged in gaslessly via NEAR Intents."
     >
       {error && <p className="text-sm text-red-700 dark:text-red-400">Couldn&apos;t load address: {error}</p>}
       {!near && !error && <p className="text-sm text-neutral-500">Loading…</p>}
