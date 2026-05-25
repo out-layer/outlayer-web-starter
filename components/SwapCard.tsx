@@ -11,6 +11,7 @@ import Card from './Card';
 import { getJson, postJson } from '@/lib/client/api';
 import { onRefreshBalances, refreshBalances } from '@/lib/client/events';
 import { TOKENS, WNEAR, bySymbol, fromRaw, toRaw } from '@/lib/client/tokens';
+import TxLink from './TxLink';
 
 type Quote = { amount_out?: string; min_amount_out?: string };
 type TokenBalance = { symbol: string; balance: string; decimals: number };
@@ -23,7 +24,7 @@ export default function SwapCard() {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [quoting, setQuoting] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
+  const [result, setResult] = useState<{ text: string; intentHash?: string | null } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -75,14 +76,17 @@ export default function SwapCard() {
     setError(null);
     setResult(null);
     try {
-      const r = await postJson<{ request_id: string; status: string; amount_out?: string }>('/api/swap', {
-        tokenIn: token.defuseId,
-        tokenOut: WNEAR.defuseId,
-        amountIn: toRaw(amount, token.decimals),
-        minAmountOut: quote?.min_amount_out,
-      });
+      const r = await postJson<{ request_id: string; status: string; amount_out?: string; intent_hash?: string | null }>(
+        '/api/swap',
+        {
+          tokenIn: token.defuseId,
+          tokenOut: WNEAR.defuseId,
+          amountIn: toRaw(amount, token.decimals),
+          minAmountOut: quote?.min_amount_out,
+        },
+      );
       const got = r.amount_out ? `${fromRaw(r.amount_out, WNEAR.decimals)} wNEAR` : r.status;
-      setResult(`Swapped → ${got} (request ${r.request_id})`);
+      setResult({ text: `Swapped → ${got}`, intentHash: r.intent_hash });
       setAmount(''); // swap done — clear so the stale amount doesn't read as "exceeds balance"
       refreshBalances();
     } catch (e) {
@@ -155,7 +159,12 @@ export default function SwapCard() {
         <p className="mt-1 text-xs text-amber-600 dark:text-amber-500">Amount exceeds balance.</p>
       )}
 
-      {result && <p className="mt-2 text-sm text-emerald-700 dark:text-emerald-500">{result}</p>}
+      {result && (
+        <p className="mt-2 flex items-center gap-2 text-sm text-emerald-700 dark:text-emerald-500">
+          {result.text}
+          <TxLink intentHash={result.intentHash} />
+        </p>
+      )}
       {error && <p className="mt-2 text-sm text-red-700 dark:text-red-400">{error}</p>}
     </Card>
   );

@@ -15,6 +15,7 @@ import Card from './Card';
 import { getJson, postJson } from '@/lib/client/api';
 import { onRefreshBalances, refreshBalances } from '@/lib/client/events';
 import { TOKENS, fromRaw, toRaw } from '@/lib/client/tokens';
+import TxLink from './TxLink';
 
 const CHAINS = ['near', 'ethereum', 'solana', 'base', 'arbitrum', 'polygon', 'optimism', 'avalanche'];
 const QUICK = ['1', '5', '10', '25'];
@@ -34,6 +35,8 @@ type Result = {
   approval_id?: string | null;
   required?: number | null;
   approved?: number | null;
+  tx_hash?: string | null;
+  intent_hash?: string | null;
 };
 type TokenBalance = { symbol: string; balance: string; decimals: number };
 
@@ -45,7 +48,12 @@ export default function WithdrawCard() {
   const [nativeNear, setNativeNear] = useState('0');
   const [balances, setBalances] = useState<TokenBalance[]>([]);
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    ok: boolean;
+    text: string;
+    txHash?: string | null;
+    intentHash?: string | null;
+  } | null>(null);
 
   const options = optionsFor(chain);
   const token = options.find((o) => o.symbol === symbol) ?? options[0]!;
@@ -99,7 +107,7 @@ export default function WithdrawCard() {
       if (r.status === 'pending_approval') {
         setMessage({ ok: true, text: `Pending approval ${r.approval_id} (${r.approved ?? 0}/${r.required})` });
       } else {
-        setMessage({ ok: true, text: `Submitted ${r.request_id} — ${r.status}` });
+        setMessage({ ok: true, text: r.status, txHash: r.tx_hash, intentHash: r.intent_hash });
       }
       refreshBalances();
     } catch (e) {
@@ -185,8 +193,9 @@ export default function WithdrawCard() {
       </div>
 
       {message && (
-        <p className={`mt-3 text-sm ${message.ok ? 'text-emerald-700 dark:text-emerald-500' : 'text-red-700 dark:text-red-400'}`}>
+        <p className={`mt-3 flex items-center gap-2 text-sm ${message.ok ? 'text-emerald-700 dark:text-emerald-500' : 'text-red-700 dark:text-red-400'}`}>
           {message.text}
+          {message.ok && <TxLink txHash={message.txHash} intentHash={message.intentHash} />}
         </p>
       )}
     </Card>

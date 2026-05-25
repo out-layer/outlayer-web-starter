@@ -5,6 +5,7 @@ import Card from './Card';
 import { getJson } from '@/lib/client/api';
 import { onRefreshBalances, refreshBalances } from '@/lib/client/events';
 import { fromRaw, toRaw } from '@/lib/client/tokens';
+import TxLink from './TxLink';
 
 const DEFAULT_VALIDATOR = 'zavodil.poolv1.near';
 
@@ -16,7 +17,12 @@ export default function StakeCard() {
   const [validator, setValidator] = useState(DEFAULT_VALIDATOR);
   const [info, setInfo] = useState<StakeInfo | null>(null);
   const [busy, setBusy] = useState<Action | null>(null);
-  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [message, setMessage] = useState<{
+    ok: boolean;
+    text: string;
+    txHash?: string | null;
+    intentHash?: string | null;
+  } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const load = useCallback(async (v: string) => {
@@ -48,7 +54,7 @@ export default function StakeCard() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? data.error);
-      setMessage({ ok: true, text: `Request ${data.request_id} — ${data.status}` });
+      setMessage({ ok: true, text: `${data.status}`, txHash: data.tx_hash, intentHash: data.intent_hash });
       refreshBalances();
     } catch (e) {
       setMessage({ ok: false, text: (e as Error).message });
@@ -141,8 +147,9 @@ export default function StakeCard() {
         )}
       </div>
       {message && (
-        <p className={`mt-3 text-sm ${message.ok ? 'text-emerald-700 dark:text-emerald-500' : 'text-red-700 dark:text-red-400'}`}>
+        <p className={`mt-3 flex items-center gap-2 text-sm ${message.ok ? 'text-emerald-700 dark:text-emerald-500' : 'text-red-700 dark:text-red-400'}`}>
           {message.text}
+          {message.ok && <TxLink txHash={message.txHash} intentHash={message.intentHash} />}
         </p>
       )}
     </Card>

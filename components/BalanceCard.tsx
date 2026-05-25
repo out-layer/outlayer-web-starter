@@ -5,6 +5,7 @@ import Card from './Card';
 import { getJson, postJson } from '@/lib/client/api';
 import { onRefreshBalances, refreshBalances } from '@/lib/client/events';
 import { TOKEN_COLOR, fromRaw } from '@/lib/client/tokens';
+import TxLink from './TxLink';
 
 type TokenBalance = {
   symbol: string;
@@ -20,7 +21,7 @@ export default function BalanceCard() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [unwrapping, setUnwrapping] = useState(false);
-  const [note, setNote] = useState<string | null>(null);
+  const [note, setNote] = useState<{ text: string; txHash?: string | null; intentHash?: string | null } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -39,11 +40,11 @@ export default function BalanceCard() {
     setUnwrapping(true);
     setNote(null);
     try {
-      const r = await postJson<{ status: string }>('/api/unwrap', {});
-      setNote(`Unwrapped to native NEAR (${r.status})`);
+      const r = await postJson<{ status: string; tx_hash?: string | null; intent_hash?: string | null }>('/api/unwrap', {});
+      setNote({ text: `Unwrapped to native NEAR (${r.status})`, txHash: r.tx_hash, intentHash: r.intent_hash });
       refreshBalances();
     } catch (e) {
-      setNote((e as Error).message);
+      setNote({ text: (e as Error).message });
     } finally {
       setUnwrapping(false);
     }
@@ -129,7 +130,12 @@ export default function BalanceCard() {
           </div>
         </div>
       )}
-      {note && <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-400">{note}</p>}
+      {note && (
+        <p className="mt-2 flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
+          {note.text}
+          <TxLink txHash={note.txHash} intentHash={note.intentHash} />
+        </p>
+      )}
     </Card>
   );
 }
